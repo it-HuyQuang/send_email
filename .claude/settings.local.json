@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(node create-sample.js:*)",
+      "Bash(node -e:*)",
+      "Bash(node:*)",
+      "Bash(del:*)"
+    ]
+  }
+}

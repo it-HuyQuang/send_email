@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi Email</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #555;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        textarea { resize: vertical; min-height: 120px; }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #4285f4;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4285f4;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover { background: #3367d6; }
+        .message {
+            text-align: center;
+            margin-top: 16px;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gửi Email</h1>
+        <nav style="text-align:center;margin-bottom:20px;">
+            <a href="/bulk" style="color:#4285f4;font-weight:600;text-decoration:none;">Gửi email hàng loạt từ Excel &rarr;</a>
+        </nav>
+        <form action="/send" method="POST">
+            <label for="to">Người nhận</label>
+            <input type="email" id="to" name="to" placeholder="example@gmail.com" required>
+
+            <label for="subject">Tiêu đề</label>
+            <input type="text" id="subject" name="subject" placeholder="Nhập tiêu đề..." required>
+
+            <label for="text">Nội dung</label>
+            <textarea id="text" name="text" placeholder="Nhập nội dung email..." required></textarea>
+
+            <button type="submit">Gửi Email</button>
+        </form>
+
+        <% if (message) { %>
+            <div class="message <%= message.includes('thành công') ? 'success' : 'error' %>">
+                <%= message %>
+            </div>
+        <% } %>
+    </div>
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi Phiếu Lương</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .topbar h1 { font-size: 18px; color: #333; }
+        .topbar nav a { color: #4285f4; text-decoration: none; font-weight: 600; font-size: 14px; }
+        .topbar nav a:hover { text-decoration: underline; }
+
+        .main { padding: 24px; max-width: 100%; }
+
+        .upload-section {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            padding: 32px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .info-box {
+            background: #e8f0fe;
+            border-left: 4px solid #4285f4;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #333;
+        }
+        label { display: block; margin-bottom: 6px; font-weight: 600; color: #555; }
+        input[type="file"] {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 16px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #fafafa;
+            transition: border-color .2s;
+        }
+        input[type="file"]:hover { border-color: #4285f4; }
+        input[type="number"] {
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        input[type="number"]:focus { outline: none; border-color: #4285f4; }
+        .form-row { display: flex; gap: 16px; align-items: flex-end; }
+        .form-row > div { flex: 1; }
+        .form-row > div:last-child { flex: 0 0 auto; }
+        button {
+            padding: 12px 28px;
+            background: #4285f4;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background .2s;
+        }
+        button:hover { background: #3367d6; }
+        button:disabled { background: #aaa; cursor: not-allowed; }
+        .message { text-align: center; margin-top: 16px; padding: 12px; border-radius: 8px; font-weight: 500; }
+        .error { background: #f8d7da; color: #721c24; }
+
+        .preview-toolbar {
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            position: sticky;
+            top: 49px;
+            z-index: 99;
+        }
+        .preview-toolbar .info { font-size: 15px; font-weight: 600; color: #333; }
+        .preview-toolbar .actions { display: flex; gap: 10px; align-items: center; }
+        .btn-send { background: #34a853; padding: 10px 32px; }
+        .btn-send:hover { background: #2d8f47; }
+        .btn-back { background: #757575; padding: 10px 20px; }
+        .btn-back:hover { background: #616161; }
+
+        .payslip-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(720px, 1fr));
+            gap: 20px;
+            padding: 24px;
+        }
+        .payslip-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: box-shadow .2s;
+        }
+        .payslip-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+        .payslip-card-header {
+            background: #4285f4;
+            color: #fff;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+        .payslip-card-header .emp-info { font-weight: 600; }
+        .payslip-card-header .emp-email { opacity: 0.85; font-size: 13px; }
+        .payslip-card-body { padding: 16px; overflow-x: auto; }
+        .payslip-card-body table { margin: 0 auto; }
+        .toggle-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: #fff;
+            padding: 4px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background .2s;
+        }
+        .toggle-btn:hover { background: rgba(255,255,255,0.35); }
+
+        /* Progress */
+        .progress-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+        .progress-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px 48px;
+            text-align: center;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+            min-width: 400px;
+        }
+        .progress-box h2 { margin-bottom: 20px; color: #333; }
+        .progress-bar-outer {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .progress-bar-inner {
+            background: linear-gradient(90deg, #4285f4, #34a853);
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            transition: width .3s ease;
+        }
+        .progress-text { font-size: 15px; color: #555; }
+        .progress-text strong { color: #333; }
+
+        /* Results */
+        .results-section { padding: 24px; }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .results-table th, .results-table td {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 14px;
+            border-bottom: 1px solid #eee;
+        }
+        .results-table th { background: #4285f4; color: #fff; border: none; }
+        .results-table tr:hover { background: #f5f7ff; }
+        .status-success { color: #34a853; font-weight: 600; }
+        .status-fail { color: #ea4335; font-weight: 600; }
+        .results-summary { display: flex; gap: 16px; margin-bottom: 16px; }
+        .summary-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 16px 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            flex: 1;
+            text-align: center;
+        }
+        .summary-card .num { font-size: 28px; font-weight: 700; }
+        .summary-card .label { font-size: 13px; color: #777; margin-top: 4px; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <h1>Gửi Phiếu Lương</h1>
+    </div>
+
+    <% if (error) { %>
+        <div class="main">
+            <div class="upload-section">
+                <div class="message error"><%= error %></div>
+                <a href="/"><button style="margin-top:12px;width:100%;">Thử lại</button></a>
+            </div>
+        </div>
+    <% } %>
+
+    <% if (!preview && !results && !error) { %>
+        <div class="main" style="display:flex;justify-content:center;align-items:center;min-height:calc(100vh - 50px);">
+            <div class="upload-section">
+                <div class="info-box">
+                    <strong>Hướng dẫn:</strong> File Excel Sheet 1 cần có các cột:<br>
+                    <strong>STT</strong> (Mã NV) &bull;
+                    <strong>TÊN NHÂN VIÊN</strong> &bull;
+                    <strong>GMAIL</strong> &bull;
+                    <strong>CHỨC VỤ</strong> &bull;
+                    <strong>NGÀY CÔNG</strong> &bull;
+                    <strong>PC</strong> &bull;
+                    <strong>PHẠT</strong> &bull;
+                    <strong>LƯƠNG</strong>
+                </div>
+
+                <form action="/preview" method="POST" enctype="multipart/form-data">
+                    <label for="excelFile">Chọn file Excel (.xlsx)</label>
+                    <input type="file" id="excelFile" name="excelFile" accept=".xlsx" required>
+                    <div class="form-row">
+                        <div>
+                            <label for="month">Tháng</label>
+                            <input type="number" id="month" name="month" min="1" max="12" value="<%= new Date().getMonth() + 1 %>" required>
+                        </div>
+                        <div>
+                            <label for="year">Năm</label>
+                            <input type="number" id="year" name="year" min="2020" max="2030" value="<%= new Date().getFullYear() %>" required>
+                        </div>
+                        <div>
+                            <button type="submit" style="margin-bottom:16px;width:100%;">Xem trước</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <% } %>
+
+    <% if (preview && preview.length > 0) { %>
+        <div class="preview-toolbar" id="previewToolbar">
+            <div class="info">
+                Xem trước phiếu lương: <strong><%= preview.length %></strong> nhân viên
+            </div>
+            <div class="actions">
+                <a href="/"><button class="btn-back">Quay lại</button></a>
+                <button class="btn-send" id="btnSend" onclick="startSending()">
+                    Gửi tất cả (<%= preview.length %>)
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress overlay (hidden by default) -->
+        <div class="progress-overlay hidden" id="progressOverlay">
+            <div class="progress-box">
+                <h2>Đang gửi phiếu lương...</h2>
+                <div class="progress-bar-outer">
+                    <div class="progress-bar-inner" id="progressBar"></div>
+                </div>
+                <div class="progress-text">
+                    <strong id="progressCompleted">0</strong> / <strong id="progressTotal">0</strong> email đã gửi
+                </div>
+            </div>
+        </div>
+
+        <!-- Results section (hidden by default) -->
+        <div class="results-section hidden" id="resultsSection"></div>
+
+        <div class="payslip-grid" id="payslipGrid">
+            <% preview.forEach((emp, i) => { %>
+                <div class="payslip-card">
+                    <div class="payslip-card-header">
+                        <div>
+                            <span class="emp-info">#<%= i + 1 %> &mdash; <%= emp.maNV %> &mdash; <%= emp.hoTen %></span><br>
+                            <span class="emp-email"><%= emp.gmail %></span>
+                        </div>
+                        <button class="toggle-btn" onclick="var b=this.closest('.payslip-card').querySelector('.payslip-card-body');b.classList.toggle('hidden');this.textContent=b.classList.contains('hidden')?'Hiện':'Ẩn';">Ẩn</button>
+                    </div>
+                    <div class="payslip-card-body">
+                        <%- emp.payslipHtml %>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <script>
+            const filePath = '<%= filePath.replace(/\\/g, "\\\\").replace(/'/g, "\\'") %>';
+            const month = '<%= month %>';
+            const year = '<%= year %>';
+
+            function startSending() {
+                const btn = document.getElementById('btnSend');
+                btn.disabled = true;
+                btn.textContent = 'Đang gửi...';
+
+                document.getElementById('progressOverlay').classList.remove('hidden');
+
+                fetch('/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'filePath=' + encodeURIComponent(filePath) + '&month=' + encodeURIComponent(month) + '&year=' + encodeURIComponent(year),
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Lỗi: ' + data.error);
+                        document.getElementById('progressOverlay').classList.add('hidden');
+                        btn.disabled = false;
+                        btn.textContent = 'Gửi tất cả';
+                        return;
+                    }
+                    trackProgress(data.jobId);
+                })
+                .catch(err => {
+                    alert('Lỗi kết nối: ' + err.message);
+                    document.getElementById('progressOverlay').classList.add('hidden');
+                    btn.disabled = false;
+                    btn.textContent = 'Gửi tất cả';
+                });
+            }
+
+            function trackProgress(jobId) {
+                const es = new EventSource('/progress/' + jobId);
+                es.onmessage = function(e) {
+                    const d = JSON.parse(e.data);
+                    if (d.error) { es.close(); return; }
+
+                    const pct = d.total > 0 ? Math.round((d.completed / d.total) * 100) : 0;
+                    document.getElementById('progressBar').style.width = pct + '%';
+                    document.getElementById('progressCompleted').textContent = d.completed;
+                    document.getElementById('progressTotal').textContent = d.total;
+
+                    if (d.done) {
+                        es.close();
+                        showResults(d.results);
+                    }
+                };
+                es.onerror = function() { es.close(); };
+            }
+
+            function showResults(results) {
+                document.getElementById('progressOverlay').classList.add('hidden');
+                document.getElementById('payslipGrid').classList.add('hidden');
+                document.getElementById('previewToolbar').classList.add('hidden');
+
+                const section = document.getElementById('resultsSection');
+                section.classList.remove('hidden');
+
+                const success = results.filter(r => r.status === 'success').length;
+                const fail = results.length - success;
+
+                let rows = '';
+                results.forEach((r, i) => {
+                    const cls = r.status === 'success' ? 'status-success' : 'status-fail';
+                    const txt = r.status === 'success' ? 'Thành công' : 'Thất bại: ' + r.error;
+                    rows += '<tr><td>' + (i+1) + '</td><td>' + r.name + '</td><td>' + r.email + '</td><td class="' + cls + '">' + txt + '</td></tr>';
+                });
+
+                section.innerHTML = `
+                    <div class="results-summary">
+                        <div class="summary-card">
+                            <div class="num" style="color:#333;">${results.length}</div>
+                            <div class="label">Tổng</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="num" style="color:#34a853;">${success}</div>
+                            <div class="label">Thành công</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="num" style="color:#ea4335;">${fail}</div>
+                            <div class="label">Thất bại</div>
+                        </div>
+                    </div>
+                    <table class="results-table">
+                        <thead><tr><th>#</th><th>Họ tên</th><th>Email</th><th>Trạng thái</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                    <div style="text-align:center;margin-top:24px;">
+                        <a href="/" style="text-decoration:none;">
+                            <button style="padding:14px 40px;background:#4285f4;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;">
+                                &#8592; Quay lại trang gửi phiếu lương
+                            </button>
+                        </a>
+                    </div>
+                `;
+            }
+        </script>
+    <% } %>
+</body>
+</html>

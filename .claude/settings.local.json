@@ -6,7 +6,12 @@
       "Bash(node create-sample.js:*)",
       "Bash(node -e:*)",
       "Bash(node:*)",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Bash(where chrome:*)",
+      "Read(//c/Program Files/Google/Chrome/Application/**)",
+      "Read(//c/Program Files \\(x86\\)/Google/Chrome/Application/**)",
+      "Bash(npm uninstall:*)",
+      "Bash(PUPPETEER_SKIP_DOWNLOAD=true npm install:*)"
     ]
   }
 }

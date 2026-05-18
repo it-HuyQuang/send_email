@@ -25,8 +25,6 @@
             z-index: 100;
         }
         .topbar h1 { font-size: 18px; color: #333; }
-        .topbar nav a { color: #4285f4; text-decoration: none; font-weight: 600; font-size: 14px; }
-        .topbar nav a:hover { text-decoration: underline; }
 
         .main { padding: 24px; max-width: 100%; }
 
@@ -35,7 +33,7 @@
             border-radius: 12px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
             padding: 32px;
-            max-width: 700px;
+            max-width: 750px;
             margin: 0 auto;
         }
         .info-box {
@@ -59,18 +57,60 @@
             transition: border-color .2s;
         }
         input[type="file"]:hover { border-color: #4285f4; }
-        input[type="number"] {
+        input[type="number"],
+        input[type="date"],
+        select {
             padding: 10px 14px;
             border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 14px;
             width: 100%;
             margin-bottom: 16px;
+            background: #fff;
         }
-        input[type="number"]:focus { outline: none; border-color: #4285f4; }
-        .form-row { display: flex; gap: 16px; align-items: flex-end; }
-        .form-row > div { flex: 1; }
-        .form-row > div:last-child { flex: 0 0 auto; }
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        select:focus { outline: none; border-color: #4285f4; }
+        .time-group { display: flex; gap: 6px; align-items: center; }
+        .time-group select { width: auto; min-width: 70px; }
+        .time-group span { font-weight: 700; font-size: 16px; color: #555; margin-bottom: 16px; }
+
+        .form-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+        .form-row > div { flex: 1; min-width: 120px; }
+
+        /* Radio group */
+        .radio-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 8px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            transition: all .2s;
+        }
+        .radio-group input[type="radio"] { margin: 0; }
+        .radio-group label:has(input:checked) {
+            border-color: #4285f4;
+            background: #e8f0fe;
+            color: #4285f4;
+            font-weight: 700;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+            margin-top: 8px;
+        }
+
         button {
             padding: 12px 28px;
             background: #4285f4;
@@ -219,7 +259,7 @@
 </head>
 <body>
     <div class="topbar">
-        <h1>Gửi Phiếu Lương</h1>
+        <h1>Gửi Phiếu Lương - VERA GROUP</h1>
     </div>
 
     <% if (error) { %>
@@ -235,20 +275,28 @@
         <div class="main" style="display:flex;justify-content:center;align-items:center;min-height:calc(100vh - 50px);">
             <div class="upload-section">
                 <div class="info-box">
-                    <strong>Hướng dẫn:</strong> File Excel Sheet 1 cần có các cột:<br>
-                    <strong>STT</strong> (Mã NV) &bull;
-                    <strong>TÊN NHÂN VIÊN</strong> &bull;
-                    <strong>GMAIL</strong> &bull;
-                    <strong>CHỨC VỤ</strong> &bull;
-                    <strong>NGÀY CÔNG</strong> &bull;
-                    <strong>PC</strong> &bull;
-                    <strong>PHẠT</strong> &bull;
-                    <strong>LƯƠNG</strong>
+                    <strong>Hướng dẫn:</strong> Upload file Excel (.xlsx) chứa dữ liệu lương.<br>
+                    Hệ thống tự nhận diện cột theo header: <strong>STT, TÊN NHÂN VIÊN, EMAIL/GMAIL, CHỨC VỤ</strong> và các cột lương tương ứng.
                 </div>
 
                 <form action="/preview" method="POST" enctype="multipart/form-data">
+                    <!-- Chọn đợt -->
+                    <div class="section-title">Chọn đợt lương</div>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="dot" value="1"> Đợt 1
+                        </label>
+                        <label>
+                            <input type="radio" name="dot" value="2" checked> Đợt 2
+                        </label>
+                    </div>
+
+                    <!-- File upload -->
                     <label for="excelFile">Chọn file Excel (.xlsx)</label>
                     <input type="file" id="excelFile" name="excelFile" accept=".xlsx" required>
+
+                    <!-- Tháng / Năm lương -->
+                    <div class="section-title">Tháng lương</div>
                     <div class="form-row">
                         <div>
                             <label for="month">Tháng</label>
@@ -258,10 +306,34 @@
                             <label for="year">Năm</label>
                             <input type="number" id="year" name="year" min="2020" max="2030" value="<%= new Date().getFullYear() %>" required>
                         </div>
+                    </div>
+
+                    <!-- Ngày giờ deadline khiếu nại -->
+                    <div class="section-title">Hạn khiếu nại</div>
+                    <div class="form-row">
                         <div>
-                            <button type="submit" style="margin-bottom:16px;width:100%;">Xem trước</button>
+                            <label for="deadlineDate">Ngày</label>
+                            <input type="date" id="deadlineDate" name="deadlineDate">
+                        </div>
+                        <div>
+                            <label>Giờ (24h)</label>
+                            <div class="time-group">
+                                <select id="deadlineHour" name="deadlineHour">
+                                    <% for (let h = 0; h < 24; h++) { %>
+                                        <option value="<%= String(h).padStart(2,'0') %>" <%= h === 15 ? 'selected' : '' %>><%= String(h).padStart(2,'0') %></option>
+                                    <% } %>
+                                </select>
+                                <span>:</span>
+                                <select id="deadlineMinute" name="deadlineMinute">
+                                    <% for (let m = 0; m < 60; m += 5) { %>
+                                        <option value="<%= String(m).padStart(2,'0') %>" <%= m === 0 ? 'selected' : '' %>><%= String(m).padStart(2,'0') %></option>
+                                    <% } %>
+                                </select>
+                            </div>
                         </div>
                     </div>
+
+                    <button type="submit" style="width:100%;margin-top:8px;">Xem trước</button>
                 </form>
             </div>
         </div>
@@ -270,7 +342,7 @@
     <% if (preview && preview.length > 0) { %>
         <div class="preview-toolbar" id="previewToolbar">
             <div class="info">
-                Xem trước phiếu lương: <strong><%= preview.length %></strong> nhân viên
+                Xem trước phiếu lương <strong>Đợt <%= typeof dot !== 'undefined' ? dot : '2' %></strong>: <strong><%= preview.length %></strong> nhân viên
             </div>
             <div class="actions">
                 <a href="/"><button class="btn-back">Quay lại</button></a>
@@ -314,9 +386,13 @@
         </div>
 
         <script>
-            const filePath = '<%= filePath.replace(/\\/g, "\\\\").replace(/'/g, "\\'") %>';
+            const filePath = '<%= filePath.replace(/\\/g, "\\\\").replace(/\'/g, "\\'") %>';
             const month = '<%= month %>';
             const year = '<%= year %>';
+            const dot = '<%= typeof dot !== "undefined" ? dot : "2" %>';
+            const deadlineDate = '<%= typeof deadlineDate !== "undefined" ? deadlineDate : "" %>';
+            const deadlineHour = '<%= typeof deadlineHour !== "undefined" ? deadlineHour : "" %>';
+            const deadlineMinute = '<%= typeof deadlineMinute !== "undefined" ? deadlineMinute : "" %>';
 
             function startSending() {
                 const btn = document.getElementById('btnSend');
@@ -325,10 +401,18 @@
 
                 document.getElementById('progressOverlay').classList.remove('hidden');
 
+                const body = 'filePath=' + encodeURIComponent(filePath)
+                    + '&month=' + encodeURIComponent(month)
+                    + '&year=' + encodeURIComponent(year)
+                    + '&dot=' + encodeURIComponent(dot)
+                    + '&deadlineDate=' + encodeURIComponent(deadlineDate)
+                    + '&deadlineHour=' + encodeURIComponent(deadlineHour)
+                    + '&deadlineMinute=' + encodeURIComponent(deadlineMinute);
+
                 fetch('/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'filePath=' + encodeURIComponent(filePath) + '&month=' + encodeURIComponent(month) + '&year=' + encodeURIComponent(year),
+                    body,
                 })
                 .then(r => r.json())
                 .then(data => {

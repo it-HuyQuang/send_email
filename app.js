@@ -342,9 +342,10 @@ function parseEmployeesDot1(workbook) {
         gmail: findCol(headers, ['GMAIL', 'EMAIL']),
         chucVu: findCol(headers, ['CHỨC VỤ', 'CHUC VU']),
         ngayCong: findCol(headers, ['NGÀY CÔNG', 'NGAY CONG']),
-        pc: findCol(headers, ['PC', 'PHỤ CẤP']),
-        phat: findCol(headers, ['PHẠT', 'PHAT'], null, ['MUỘN', 'ĐI MUỘN']),
-        luong: findCol(headers, [], 'LƯƠNG', ['ĐỢT', 'DOT', 'TỔNG']),
+        lcDot1: findCol(headers, ['LC ĐỢT 1', 'LC DOT 1'], 'LC ĐỢT'),
+        phuCapTN: findCol(headers, ['PHỤ CẤP TN', 'PHU CAP TN']),
+        phuCapXe: findCol(headers, ['PHỤ CẤP XE', 'PHU CAP XE']),
+        phatDiMuon: findCol(headers, ['PHẠT ĐI MUỘN', 'PHAT DI MUON'], 'PHẠT ĐI MUỘN'),
     };
 
     const employees = [];
@@ -355,9 +356,10 @@ function parseEmployeesDot1(workbook) {
         if (!stt || !gmail) return;
         if (String(stt).toUpperCase() === 'TỔNG') return;
 
-        const luong = toNumber(getCellValue(row, col.luong));
-        const pc = toNumber(getCellValue(row, col.pc));
-        const phat = toNumber(getCellValue(row, col.phat));
+        const lcDot1 = toNumber(getCellValue(row, col.lcDot1));
+        const phuCapTN = toNumber(getCellValue(row, col.phuCapTN));
+        const phuCapXe = toNumber(getCellValue(row, col.phuCapXe));
+        const phatDiMuon = toNumber(getCellValue(row, col.phatDiMuon));
 
         employees.push({
             maNV: String(stt).trim(),
@@ -365,8 +367,8 @@ function parseEmployeesDot1(workbook) {
             gmail: String(gmail).trim(),
             chucVu: String(getCellValue(row, col.chucVu) || '').trim(),
             ngayCong: toNumber(getCellValue(row, col.ngayCong)),
-            luong, pc, phat,
-            netIncome: luong + pc - phat,
+            lcDot1, phuCapTN, phuCapXe, phatDiMuon,
+            netIncome: lcDot1 + phuCapTN + phuCapXe - phatDiMuon,
         });
     });
     return employees;
@@ -375,115 +377,123 @@ function parseEmployeesDot1(workbook) {
 function buildPayslipHtmlDot1(emp, month, year) {
     const mm = String(month || '--').padStart(2, '0');
     const yyyy = year || '--';
+
+    const fv = (val) => val ? formatVND(val) + ' đ' : '';
+
     return `<!DOCTYPE html>
 <html>
-<head><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#fff;">
-<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;margin:0 auto;font-family:'Times New Roman',Georgia,serif;border-collapse:collapse;background:#ffffff;">
+<head><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<style>
+    body { margin:0; padding:0; background:#fff; }
+    table.payslip {
+        width:100%; max-width:600px; margin:0 auto;
+        font-family:'Times New Roman',Georgia,serif;
+        border-collapse:collapse; background:#fff;
+    }
+    table.payslip td { vertical-align:top; }
+    .bl { border-left:1px solid #bbb; }
+    .br { border-right:1px solid #bbb; }
+    .blr { border-left:1px solid #bbb; border-right:1px solid #bbb; }
+    .hdr { background:#fff2cc; padding:8px 14px; font-weight:bold; text-align:center; border-top:1px solid #bbb; border-bottom:1px solid #bbb; border-left:1px solid #bbb; border-right:1px solid #bbb; }
+    .info-label { padding:8px 14px; font-size:13px; color:#555; width:48%; border-bottom:1px solid #ddd; }
+    .info-value { padding:8px 14px; font-size:13px; border-bottom:1px solid #ddd; }
+    .item-label { padding:7px 14px; font-size:13px; border-bottom:1px solid #ddd; }
+    .item-value { padding:7px 14px; font-size:13px; text-align:right; font-weight:bold; border-bottom:1px solid #ddd; }
+</style>
+</head>
+<body>
+<table class="payslip" cellpadding="0" cellspacing="0">
 
-    <!-- Header with logo -->
+    <!-- HEADER: Logo + Company -->
     <tr>
-        <td style="padding:16px 12px 4px;vertical-align:top;width:120px;">
-            ${logoDataUri ? `<img src="${logoDataUri}" alt="VERA" style="width:100px;height:auto;">` : ''}
-        </td>
-        <td style="padding:16px 12px 4px;vertical-align:top;">
-            <div style="font-size:18px;font-weight:bold;color:#b8860b;letter-spacing:2px;">VERA GROUP</div>
-            <div style="font-size:11px;color:#b8860b;">39 Lê Văn Lương - Thanh Xuân - Hà Nội</div>
+        <td colspan="2" style="padding:16px 14px;border-left:1px solid #bbb;border-right:1px solid #bbb;border-top:1px solid #bbb;border-bottom:1px solid #bbb;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                ${logoDataUri ? `<img src="${logoDataUri}" alt="VERA" style="height:70px;width:auto;">` : ''}
+                <div>
+                    <div style="font-size:20px;font-weight:bold;color:#b8860b;letter-spacing:1px;">VERA GROUP</div>
+                    <div style="font-size:12px;color:#b8860b;margin-top:4px;">39 Lê Văn Lương - Thanh Xuân - Hà Nội</div>
+                </div>
+            </div>
         </td>
     </tr>
 
+    <!-- PAYSLIP Title -->
     <tr>
-        <td colspan="2" style="text-align:center;padding:16px 12px 4px;font-size:20px;font-weight:bold;letter-spacing:2px;">
+        <td colspan="2" class="blr" style="text-align:center;padding:20px 14px 4px;font-size:22px;font-weight:bold;letter-spacing:2px;">
             PAYSLIP
         </td>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:center;padding:2px 12px 14px;font-style:italic;color:#666;font-size:14px;border-bottom:2px solid #999;">
+        <td colspan="2" class="blr" style="text-align:center;padding:2px 14px 16px;font-style:italic;color:#333;font-size:14px;border-bottom:2px solid #333;">
             Month: ${mm}, Year: ${yyyy}
         </td>
     </tr>
 
+    <!-- EMPLOYEE INFORMATION -->
+    <tr><td colspan="2" class="hdr" style="font-size:13px;border-top:2px solid #333;">EMPLOYEE INFORMATION – THÔNG TIN NHÂN SỰ</td></tr>
     <tr>
-        <td colspan="2" style="background:#d9e1f2;padding:8px 12px;font-weight:bold;font-size:13px;text-align:center;border-bottom:1px solid #999;">
-            EMPLOYEE INFORMATION &ndash; TH&Ocirc;NG TIN NH&Acirc;N SỰ
-        </td>
+        <td class="info-label bl">Full name / Họ và tên:</td>
+        <td class="info-value br" style="font-weight:bold;font-size:14px;">${emp.hoTen}</td>
     </tr>
     <tr>
-        <td style="padding:6px 12px;font-size:12px;color:#555;width:45%;">Full name / Họ v&agrave; t&ecirc;n:</td>
-        <td style="padding:6px 12px;font-size:13px;font-weight:bold;">${emp.hoTen}</td>
+        <td class="info-label bl">Mã NV:</td>
+        <td class="info-value br" style="font-weight:bold;color:#cc0000;">${emp.maNV}</td>
     </tr>
     <tr>
-        <td style="padding:6px 12px;font-size:12px;color:#555;">M&atilde; NV:</td>
-        <td style="padding:6px 12px;font-size:13px;font-weight:bold;color:#0066cc;">${emp.maNV}</td>
+        <td class="info-label bl">Position / Chức danh:</td>
+        <td class="info-value br">${emp.chucVu}</td>
     </tr>
     <tr>
-        <td style="padding:6px 12px;font-size:12px;color:#555;">Position / Chức danh:</td>
-        <td style="padding:6px 12px;font-size:12px;">${emp.chucVu}</td>
-    </tr>
-    <tr>
-        <td style="padding:6px 12px;font-size:12px;color:#555;border-bottom:2px solid #333;">Bank account / T&agrave;i khoản ng&acirc;n h&agrave;ng:</td>
-        <td style="padding:6px 12px;border-bottom:2px solid #333;"></td>
+        <td class="info-label bl">Bank account / Tài khoản ngân hàng:</td>
+        <td class="info-value br"></td>
     </tr>
 
+    <!-- INCOME -->
+    <tr><td colspan="2" class="hdr" style="font-size:14px;border-top:2px solid #333;">INCOME – THU NHẬP</td></tr>
     <tr>
-        <td colspan="2" style="background:#d9e1f2;padding:8px 12px;font-weight:bold;font-size:14px;text-align:center;border-bottom:1px solid #999;">
-            INCOME &ndash; THU NHẬP
-        </td>
+        <td class="item-label bl">Ngày làm việc: <strong>${Number(emp.ngayCong).toFixed(2)}</strong></td>
+        <td class="item-value br">Thành tiền: <strong>${formatVND(emp.lcDot1)} đ</strong></td>
     </tr>
+    <tr><td class="item-label bl">Phụ cấp TN</td><td class="item-value br">${fv(emp.phuCapTN)}</td></tr>
+    <tr><td class="item-label bl">Phụ cấp xe</td><td class="item-value br">${fv(emp.phuCapXe)}</td></tr>
     <tr>
-        <td style="padding:8px 12px;font-size:13px;border-bottom:1px solid #bbb;">
-            Ng&agrave;y l&agrave;m việc: <strong>${Number(emp.ngayCong).toFixed(2)}</strong>
-        </td>
-        <td style="padding:8px 12px;font-size:13px;text-align:right;border-bottom:1px solid #bbb;">
-            Th&agrave;nh tiền: <strong>${formatVND(emp.luong)}</strong>
-        </td>
-    </tr>
-    <tr>
-        <td style="padding:8px 12px;font-size:13px;border-bottom:1px solid #bbb;">Phụ cấp tr&aacute;ch nhiệm</td>
-        <td style="padding:8px 12px;font-size:13px;text-align:right;border-bottom:1px solid #bbb;">${emp.pc ? formatVND(emp.pc) : ''}</td>
-    </tr>
-    <tr>
-        <td style="padding:8px 12px;font-size:13px;border-bottom:1px solid #bbb;">Phụ cấp v&eacute; xe</td>
-        <td style="padding:8px 12px;font-size:13px;text-align:right;border-bottom:1px solid #bbb;"></td>
-    </tr>
-    <tr>
-        <td style="padding:8px 12px;font-size:13px;border-bottom:2px solid #333;">Phạt đi muộn</td>
-        <td style="padding:8px 12px;font-size:13px;text-align:right;border-bottom:2px solid #333;color:#cc0000;">
-            ${emp.phat ? formatVND(emp.phat) + ' đ' : ''}
-        </td>
+        <td class="item-label bl" style="color:#cc0000;">Phạt đi muộn</td>
+        <td class="item-value br" style="color:#cc0000;">${fv(emp.phatDiMuon)}</td>
     </tr>
 
+    <!-- NET INCOME -->
     <tr>
-        <td style="padding:12px;font-weight:bold;font-size:12px;border-bottom:2px solid #333;vertical-align:middle;">
-            NET INCOME &ndash; LƯƠNG THỰC LĨNH<br>
-            <span style="font-size:11px;color:#555;">(Currency / Đơn vị thanh to&aacute;n: VND)</span>
+        <td class="bl" style="padding:14px;font-weight:bold;font-size:13px;border-top:2px solid #333;border-bottom:2px solid #333;vertical-align:middle;">
+            NET INCOME – LƯƠNG THỰC LĨNH<br>
+            <span style="font-size:11px;color:#555;font-style:italic;">(Currency / Đơn vị thanh toán: VND)</span>
         </td>
-        <td style="padding:12px;text-align:right;border-bottom:2px solid #333;vertical-align:middle;">
-            <div style="display:inline-block;font-size:22px;font-weight:bold;color:#cc0000;background:#fff2cc;padding:8px 16px;border:2px solid #cc0000;">
+        <td class="br" style="padding:14px;text-align:right;border-top:2px solid #333;border-bottom:2px solid #333;vertical-align:middle;">
+            <div style="display:inline-block;font-size:24px;font-weight:bold;color:#cc0000;background:#fff2cc;padding:8px 18px;border:2px solid #cc0000;">
                 ${formatVND(emp.netIncome)}đ
             </div>
         </td>
     </tr>
 
+    <!-- Ghi chú -->
     <tr>
-        <td colspan="2" style="padding:10px 12px 4px;font-size:11px;color:#cc0000;font-style:italic;">
-            * Ghi ch&uacute;:<br>
-            Th&ocirc;ng tin lương phải được bảo mật tuyệt đối. C&aacute; nh&acirc;n n&agrave;o v&ocirc; t&igrave;nh hoặc cố &yacute; l&agrave;m lộ th&ocirc;ng tin lương của c&aacute; nh&acirc;n hay đồng nghiệp sẽ bị xử l&yacute; kỷ luật theo quy định.
+        <td colspan="2" class="blr" style="padding:12px 14px 4px;font-size:11px;color:#cc0000;font-style:italic;">
+            * Ghi chú:<br>
+            Thông tin lương phải được bảo mật tuyệt đối. Cá nhân nào vô tình hoặc cố ý làm lộ thông tin lương của cá nhân hay đồng nghiệp sẽ bị xử lý kỷ luật theo quy định.
         </td>
     </tr>
     <tr>
-        <td colspan="2" style="padding:4px 12px;font-size:12px;">
-            <strong>Mọi thắc mắc vui l&ograve;ng li&ecirc;n hệ P. HCKT:</strong>
+        <td colspan="2" class="blr" style="padding:4px 14px;font-size:12px;font-weight:bold;">
+            Mọi thắc mắc vui lòng liên hệ P. HCKT:
         </td>
     </tr>
     <tr>
-        <td colspan="2" style="padding:4px 12px;font-size:12px;font-weight:bold;">
-            Bạch Mai Ng&acirc;n - 0398 210 432
+        <td colspan="2" class="blr" style="padding:4px 14px;font-size:12px;font-weight:bold;">
+            Bạch Mai Ngân - 0398 210 432
         </td>
     </tr>
     <tr>
-        <td colspan="2" style="padding:4px 12px 14px;font-size:12px;font-style:italic;">
-            Thank you for your consideration. / Xin ch&acirc;n th&agrave;nh cảm ơn.
+        <td colspan="2" class="blr" style="padding:4px 14px 16px;font-size:12px;font-style:italic;border-bottom:1px solid #bbb;">
+            Thank you for your consideration. / Xin chân thành cảm ơn.
         </td>
     </tr>
 
